@@ -11,6 +11,7 @@ import { type EffectFallbacks } from "../effectFallbacks";
 import { MaterialPluginBase } from "../materialPluginBase.pure";
 import { Constants } from "../../Engines/constants";
 import { MaterialDefines } from "../materialDefines";
+import { Logger } from "../../Misc/logger";
 
 import { type Scene } from "../../scene";
 import { type AbstractMesh } from "../../Meshes/abstractMesh";
@@ -296,6 +297,22 @@ export class PBRAnisotropicConfiguration extends MaterialPluginBase {
         // Backward compatibility
         if (source.legacy === undefined) {
             this.legacy = true;
+        }
+
+        if (!Number.isFinite(this.intensity)) {
+            Logger.Warn(
+                `PBRAnisotropicConfiguration.parse: intensity must be finite; received ${String(this.intensity)}. Falling back to 1 for material "${this._material.name}".`
+            );
+            this.intensity = 1;
+        }
+
+        const directionX = this.direction?.x;
+        const directionY = this.direction?.y;
+        if (!Number.isFinite(directionX) || !Number.isFinite(directionY) || (directionX === 0 && directionY === 0)) {
+            Logger.Warn(
+                `PBRAnisotropicConfiguration.parse: direction must contain two finite components and must not be zero; received (${String(directionX)}, ${String(directionY)}). Falling back to (1, 0) for material "${this._material.name}".`
+            );
+            this.direction = new Vector2(1, 0);
         }
     }
 }

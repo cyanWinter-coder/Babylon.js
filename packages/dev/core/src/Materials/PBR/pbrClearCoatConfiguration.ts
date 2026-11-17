@@ -16,6 +16,7 @@ import { type Engine } from "../../Engines/engine";
 import { type Scene } from "../../scene";
 import { type PBRBaseMaterial } from "./pbrBaseMaterial";
 import { BindTextureMatrix, PrepareDefinesForMergedUV } from "../materialHelper.functions";
+import { Logger } from "../../Misc/logger";
 
 /**
  * @internal
@@ -513,5 +514,59 @@ export class PBRClearCoatConfiguration extends MaterialPluginBase {
                 { name: "clearCoatTintMatrix", size: 16, type: "mat4" },
             ],
         };
+    }
+
+    /**
+     * Parses a clear coat Configuration from a serialized object.
+     * @param source - Serialized object.
+     * @param scene Defines the scene we are parsing for
+     * @param rootUrl Defines the rootUrl to load from
+     */
+    public override parse(source: any, scene: Scene, rootUrl: string): void {
+        super.parse(source, scene, rootUrl);
+
+        if (!Number.isFinite(this.intensity)) {
+            Logger.Warn(`PBRClearCoatConfiguration.parse: intensity must be finite; received ${String(this.intensity)}. Falling back to 1 for material "${this._material.name}".`);
+            this.intensity = 1;
+        }
+
+        if (!Number.isFinite(this.roughness)) {
+            Logger.Warn(`PBRClearCoatConfiguration.parse: roughness must be finite; received ${String(this.roughness)}. Falling back to 0 for material "${this._material.name}".`);
+            this.roughness = 0;
+        }
+
+        if (!Number.isFinite(this._indexOfRefraction) || this._indexOfRefraction <= 0) {
+            Logger.Warn(
+                `PBRClearCoatConfiguration.parse: indexOfRefraction must be finite and greater than 0; received ${String(
+                    this._indexOfRefraction
+                )}. Falling back to ${PBRClearCoatConfiguration._DefaultIndexOfRefraction} for material "${this._material.name}".`
+            );
+            this._indexOfRefraction = PBRClearCoatConfiguration._DefaultIndexOfRefraction;
+        }
+
+        if (!Number.isFinite(this.tintColor.r) || !Number.isFinite(this.tintColor.g) || !Number.isFinite(this.tintColor.b)) {
+            Logger.Warn(
+                `PBRClearCoatConfiguration.parse: tintColor must contain three finite components; received (${String(this.tintColor.r)}, ${String(
+                    this.tintColor.g
+                )}, ${String(this.tintColor.b)}). Falling back to white for material "${this._material.name}".`
+            );
+            this.tintColor = Color3.White();
+        }
+
+        if (!Number.isFinite(this.tintColorAtDistance)) {
+            Logger.Warn(
+                `PBRClearCoatConfiguration.parse: tintColorAtDistance must be finite; received ${String(
+                    this.tintColorAtDistance
+                )}. Falling back to 1 for material "${this._material.name}".`
+            );
+            this.tintColorAtDistance = 1;
+        }
+
+        if (!Number.isFinite(this.tintThickness)) {
+            Logger.Warn(
+                `PBRClearCoatConfiguration.parse: tintThickness must be finite; received ${String(this.tintThickness)}. Falling back to 1 for material "${this._material.name}".`
+            );
+            this.tintThickness = 1;
+        }
     }
 }

@@ -23,28 +23,46 @@
     ) -> anisotropicOutParams
     {        
         var outParams: anisotropicOutParams;
-        var anisotropy: f32 = vAnisotropy.b;
-        var anisotropyDirection: vec3f =  vec3f(vAnisotropy.xy, 0.);
+        var anisotropy: f32 = clamp(vAnisotropy.b, -1.0, 1.0);
+        var anisotropyDirection: vec2f = vAnisotropy.xy;
+        let anisotropyDirectionLengthSquared: f32 = dot(anisotropyDirection, anisotropyDirection);
+        if (anisotropyDirectionLengthSquared > 1e-8) {
+            anisotropyDirection *= inverseSqrt(anisotropyDirectionLengthSquared);
+        } else {
+            anisotropyDirection = vec2f(1.0, 0.0);
+        }
 
         #ifdef ANISOTROPIC_TEXTURE
             var amd = anisotropyMapData.rg;
-            anisotropy *= anisotropyMapData.b;
+            anisotropy = clamp(anisotropy * anisotropyMapData.b, -1.0, 1.0);
 
             #if DEBUGMODE > 0
                 outParams.anisotropyMapData = anisotropyMapData;
             #endif
 
             amd = amd * 2.0 - 1.0;
+            let amdLengthSquared: f32 = dot(amd, amd);
+            if (amdLengthSquared > 1e-8) {
+                amd *= inverseSqrt(amdLengthSquared);
+            } else {
+                amd = anisotropyDirection;
+            }
 
             #ifdef ANISOTROPIC_LEGACY
-                anisotropyDirection = vec3f(anisotropyDirection.xy * amd, anisotropyDirection.z);
+                anisotropyDirection *= amd;
             #else
-                anisotropyDirection = vec3f(mat2x2f(anisotropyDirection.x, anisotropyDirection.y, -anisotropyDirection.y, anisotropyDirection.x) * normalize(amd), anisotropyDirection.z);
+                anisotropyDirection = mat2x2f(anisotropyDirection.x, anisotropyDirection.y, -anisotropyDirection.y, anisotropyDirection.x) * amd;
             #endif
         #endif
 
         var anisoTBN: mat3x3f =  mat3x3f(normalize(TBN[0]), normalize(TBN[1]), normalize(TBN[2]));
-        var anisotropicTangent: vec3f = normalize(anisoTBN * anisotropyDirection);
+        let finalDirectionLengthSquared: f32 = dot(anisotropyDirection, anisotropyDirection);
+        if (finalDirectionLengthSquared > 1e-8) {
+            anisotropyDirection *= inverseSqrt(finalDirectionLengthSquared);
+        } else {
+            anisotropyDirection = vec2f(1.0, 0.0);
+        }
+        var anisotropicTangent: vec3f = normalize(anisoTBN * vec3f(anisotropyDirection, 0.0));
         var anisotropicBitangent: vec3f = normalize(cross(anisoTBN[2], anisotropicTangent));
         
         outParams.anisotropy = anisotropy;

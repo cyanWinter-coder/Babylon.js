@@ -232,8 +232,7 @@ fn evalFuzz(L: vec3f, NdotL: f32, NdotV: f32, T: vec3f, B: vec3f, ltcLut: vec3f)
         var clearCoatRoughness: f32 = max(info.roughness, geometricRoughnessFactor);
         var alphaG: f32 = convertRoughnessToAverageSlope(clearCoatRoughness);
 
-        var fresnel: f32 = fresnelSchlickGGX(info.VdotH, uniforms.vClearCoatRefractionParams.x, CLEARCOATREFLECTANCE90);
-        fresnel *= clearCoatIntensity;
+        var fresnel: f32 = saturate(fresnelSchlickGGX(info.VdotH, uniforms.vClearCoatRefractionParams.x, CLEARCOATREFLECTANCE90) * saturate(clearCoatIntensity));
         var distribution: f32 = normalDistributionFunction_TrowbridgeReitzGGX(NccdotH, alphaG);
         var kelemenVisibility: f32 = visibility_Kelemen(info.VdotH);
 

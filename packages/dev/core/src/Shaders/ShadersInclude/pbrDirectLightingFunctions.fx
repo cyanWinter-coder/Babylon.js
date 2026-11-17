@@ -230,8 +230,7 @@ float evalFuzz(vec3 L, float NdotL, float NdotV, vec3 T, vec3 B, vec3 ltcLut)
         float clearCoatRoughness = max(info.roughness, geometricRoughnessFactor);
         float alphaG = convertRoughnessToAverageSlope(clearCoatRoughness);
 
-        float fresnel = fresnelSchlickGGX(info.VdotH, vClearCoatRefractionParams.x, CLEARCOATREFLECTANCE90);
-        fresnel *= clearCoatIntensity;
+        float fresnel = saturate(fresnelSchlickGGX(info.VdotH, vClearCoatRefractionParams.x, CLEARCOATREFLECTANCE90) * saturate(clearCoatIntensity));
         float distribution = normalDistributionFunction_TrowbridgeReitzGGX(NccdotH, alphaG);
         float kelemenVisibility = visibility_Kelemen(info.VdotH);
 

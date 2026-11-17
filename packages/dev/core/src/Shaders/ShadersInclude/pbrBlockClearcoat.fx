@@ -123,6 +123,9 @@ struct clearcoatOutParams
            clearCoatRoughness *= clearCoatMapRoughnessData.y;
         #endif
 
+        clearCoatIntensity = saturate(clearCoatIntensity);
+        clearCoatRoughness = saturate(clearCoatRoughness);
+
         outParams.clearCoatIntensity = clearCoatIntensity;
         outParams.clearCoatRoughness = clearCoatRoughness;
 
@@ -312,7 +315,7 @@ struct clearcoatOutParams
 
         // clear coat energy conservation
         float fresnelIBLClearCoat = fresnelSchlickGGX(clearCoatNdotV, vClearCoatRefractionParams.x, CLEARCOATREFLECTANCE90);
-        fresnelIBLClearCoat *= clearCoatIntensity;
+        fresnelIBLClearCoat = saturate(fresnelIBLClearCoat * clearCoatIntensity);
 
         outParams.conservationFactor = (1. - fresnelIBLClearCoat);
 
